@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,31 +22,46 @@ import com.ecommerce.service.CartService;
 @CrossOrigin("*")
 public class CartController 
 {
-	@Autowired
+    @Autowired
     private CartService cartservice;
-	
-	@PostMapping
-	public Cart addToCart(@RequestBody Cart cart)
-	{
-		return cartservice.addToCart(cart);
-	}
-	
-	@GetMapping
-	public List<Cart> getCartItems()
-	{
-		return cartservice.getAllCartItems();
-	}
-	
-	@DeleteMapping("/{id}")
-	public String removeCartItem(@PathVariable Long id)
-	{
-		return cartservice.removeCartItem(id);
-	}
-	
-	@DeleteMapping("/clear")
-	public ResponseEntity<String> clearCart()
-	{
-		cartservice.clearCart();
-		return ResponseEntity.ok("Cart Cleared");
-	}
+
+    @PostMapping
+    public Cart addToCart(
+            @RequestBody Cart cart,
+            Authentication authentication)
+    {
+        String email = authentication.getName();
+
+        return cartservice.addToCart(cart, email);
+    }
+
+    @GetMapping
+    public List<Cart> getCartItems(
+            Authentication authentication)
+    {
+        String email = authentication.getName();
+
+        return cartservice.getCartItemsByUser(email);
+    }
+
+    @DeleteMapping("/{id}")
+    public String removeCartItem(
+            @PathVariable Long id,
+            Authentication authentication)
+    {
+        String email = authentication.getName();
+
+        return cartservice.removeCartItem(id, email);
+    }
+
+    @DeleteMapping("/clear")
+    public ResponseEntity<String> clearCart(
+            Authentication authentication)
+    {
+        String email = authentication.getName();
+
+        cartservice.clearCart(email);
+
+        return ResponseEntity.ok("Cart Cleared");
+    }
 }

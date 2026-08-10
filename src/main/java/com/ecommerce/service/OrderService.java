@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import com.ecommerce.entity.Order;
 import com.ecommerce.repository.OrderRepository;
 import com.ecommerce.repository.ProductRepository;
+import com.ecommerce.repository.UserRepository;
 import com.ecommerce.entity.Product;
+import com.ecommerce.entity.User;
 import com.ecommerce.entity.OrderItem;
 
 @Service
@@ -20,8 +22,13 @@ public class OrderService
 	@Autowired
 	private ProductRepository productrepository;
 	
-	public Order placeOrder(Order order)
+	@Autowired
+	private UserRepository userrepository;
+	
+	public Order placeOrder(Order order, String email)
 	{
+		User user=userrepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User Is Not Found"));
+		order.setUser(user);
 		order.setStatus("Placed");
 		if(order.getOrderitems() != null)
 		{
@@ -30,17 +37,20 @@ public class OrderService
 		return orderrepository.save(order);
 	}
 	
-	public List<Order> getAllOrders()
+	public List<Order> getOrderByUser(String email)
 	{
-		return orderrepository.findAll();
+		User user=userrepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User Not Found"));
+		return orderrepository.findByUser(user);
 	}
 	
 	public Order getOrderById(Long id)
 	{
 		return orderrepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
 	}
-	public Order buyNow(Order order)
+	public Order buyNow(Order order, String email)
 	{
+		User user=userrepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User Not Found"));
+		order.setUser(user);
 	    order.setStatus("Placed");
 
 	    if(order.getOrderitems() != null)
